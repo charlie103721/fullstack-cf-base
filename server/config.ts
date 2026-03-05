@@ -1,3 +1,4 @@
+// M5 test
 type ImportMetaWithEnv = ImportMeta & {
   env?: {
     DEV?: boolean;
