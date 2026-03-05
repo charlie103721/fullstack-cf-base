@@ -7,7 +7,7 @@
   },
   "M2": {
     "title": "About Page",
-    "status": "in_progress",
+    "status": "done",
     "depends": [],
     "plan": "m2.md"
   }
