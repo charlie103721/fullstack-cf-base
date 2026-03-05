@@ -1,3 +1,5 @@
+<img src="client/public/vite.svg" alt="Vite logo" width="80" />
+
 # Fullstack CF Base
 
 Full-stack template built with **Hono** + **React** running on **Cloudflare Workers**.
