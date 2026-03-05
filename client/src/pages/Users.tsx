@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { trpc } from "../lib/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchApi } from "../lib/api";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,16 +20,37 @@ import {
 } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  created_at: string;
+}
+
 export default function Users() {
+  const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
-  const { data: users, isLoading, error, refetch } = trpc.users.list.useQuery();
-  const createUser = trpc.users.create.useMutation({
+  const {
+    data: users,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["users"],
+    queryFn: () => fetchApi<User[]>("/api/users"),
+  });
+
+  const createUser = useMutation({
+    mutationFn: (body: { name: string; email: string }) =>
+      fetchApi<User>("/api/users", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
     onSuccess: () => {
       setName("");
       setEmail("");
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 
@@ -66,7 +88,9 @@ export default function Users() {
             </Button>
             {createUser.error && (
               <Alert variant="destructive">
-                <AlertDescription>Error: {createUser.error.message}</AlertDescription>
+                <AlertDescription>
+                  Error: {createUser.error.message}
+                </AlertDescription>
               </Alert>
             )}
           </form>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { trpc } from "../lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { fetchApi } from "../lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { signOut } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -16,10 +17,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 export default function Home() {
   const [count, setCount] = useState(0);
   const { isAuthenticated, session } = useAuth();
-  const { data, error, isLoading, refetch } = trpc.hello.useQuery(
-    {},
-    { enabled: false },
-  );
+  const { data, error, isLoading, refetch } = useQuery({
+    queryKey: ["hello"],
+    queryFn: () =>
+      fetchApi<{ message: string; timestamp: string }>("/api/hello"),
+    enabled: false,
+  });
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col items-center gap-6 p-8">
@@ -47,8 +50,8 @@ export default function Home() {
         <CardHeader>
           <CardTitle>Public API</CardTitle>
           <CardDescription>
-            Calls the public <code className="font-mono">hello</code> tRPC
-            route — no auth required.
+            Calls the public <code className="font-mono">hello</code> route
+            — no auth required.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-3">
