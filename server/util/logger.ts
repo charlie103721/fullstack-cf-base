@@ -1,3 +1,4 @@
+// M6 test
 type LogLevel = "debug" | "info" | "warn" | "error";
 
 const LEVELS: Record<LogLevel, number> = {
