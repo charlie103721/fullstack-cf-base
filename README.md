@@ -2,7 +2,7 @@
 
 Full-stack template built with **Hono** + **React** running on **Cloudflare Workers**.
 
-**Stack:** Hono, React 19, tRPC, Better Auth, Knex + PostgreSQL (via Hyperdrive), Tailwind CSS v4, Vite
+**Stack:** Hono (REST API), React 19, React Query, Better Auth, Knex + PostgreSQL (via Hyperdrive), Tailwind CSS v4, Vite
 
 ---
 
@@ -163,16 +163,17 @@ Client: http://localhost:5173 | Server: http://localhost:8787
 │   └── src/
 │       ├── components/  # UI components (shadcn/ui)
 │       ├── hooks/       # React hooks (useAuth, etc.)
-│       ├── lib/         # API client, auth utilities
+│       ├── lib/         # API client (fetch + React Query), auth utilities
 │       └── pages/       # Route pages
-├── server/              # Hono backend
+├── server/              # Hono backend (REST API)
+│   ├── config.ts        # Runtime config (isDev flag, etc.)
 │   ├── db/
 │   │   ├── knexfile.ts  # Knex config (dev + prod)
 │   │   └── migrations/  # Database migrations
 │   ├── features/        # Feature modules (router/service/repo/schema)
 │   ├── lib/             # Auth setup (better-auth)
-│   ├── middleware/       # Auth, logging, error handling
-│   └── trpc/            # tRPC router & procedures
+│   ├── middleware/       # Auth, JWT, logging, error handling
+│   └── util/            # Shared helpers (logger, response formatting)
 ├── scripts/             # Deployment utilities
 ├── wrangler.jsonc       # Cloudflare Workers config
 ├── vite.config.ts       # Client build config
