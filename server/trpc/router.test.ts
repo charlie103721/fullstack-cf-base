@@ -7,7 +7,7 @@ describe("appRouter", () => {
   describe("hello", () => {
     it("returns default greeting when no name provided", async () => {
       const result = await caller.hello({});
-      expect(result.message).toBe("Hello from tRPC!");
+      expect(result.message).toBe("Hello from Hono!");
       expect(result.timestamp).toBeTypeOf("number");
     });
 
