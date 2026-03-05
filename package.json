@@ -23,12 +23,8 @@
 		"secrets:push": "bun scripts/push-secrets.ts"
 	},
 	"dependencies": {
-		"@hono/trpc-server": "^0.4.2",
 		"@tailwindcss/vite": "^4.1.18",
 		"@tanstack/react-query": "^5.90.21",
-		"@trpc/client": "^11.10.0",
-		"@trpc/react-query": "^11.10.0",
-		"@trpc/server": "^11.10.0",
 		"better-auth": "^1.4.18",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
@@ -41,7 +37,6 @@
 		"react-dom": "^19.2.4",
 		"react-icons": "^5.5.0",
 		"react-router": "^7.13.0",
-		"superjson": "^2.2.6",
 		"tailwind-merge": "^3.4.0",
 		"tailwindcss": "^4.1.18",
 		"zod": "^4.3.6"
