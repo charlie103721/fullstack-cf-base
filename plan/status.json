@@ -10,5 +10,11 @@
     "status": "done",
     "depends": [],
     "plan": "m2.md"
+  },
+  "M3": {
+    "title": "Remove tRPC, Replace with Hono REST Routes",
+    "status": "ready",
+    "depends": [],
+    "plan": "m3.md"
   }
 }
