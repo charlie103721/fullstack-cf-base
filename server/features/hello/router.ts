@@ -1,9 +1,12 @@
-import { z } from "zod/v4";
-import { publicProcedure } from "../../trpc/trpc";
+import { Hono } from "hono";
 
-export const helloRouter = publicProcedure
-  .input(z.object({ name: z.optional(z.string()) }))
-  .query(({ input }) => {
-    const name = input.name ?? "tRPC";
-    return { message: `Hello from ${name}!`, timestamp: Date.now() };
-  });
+const DEFAULT_NAME = "Hono";
+
+const helloRoutes = new Hono();
+
+helloRoutes.get("/", (c) => {
+  const name = c.req.query("name") || DEFAULT_NAME;
+  return c.json({ message: `Hello from ${name}!`, timestamp: Date.now() });
+});
+
+export { helloRoutes };

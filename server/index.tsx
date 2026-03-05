@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 
-import { trpcServer } from "@hono/trpc-server";
-import { appRouter } from "./trpc";
+import { helloRoutes } from "./features/hello/router";
+import { usersRoutes } from "./features/users/router";
 import { dbMiddleware } from "./db";
 import { ok } from "./util/response";
 import { requestId } from "./middleware/requestId";
@@ -38,22 +38,14 @@ app.route("/api/auth", authHandler);
 // JWT middleware (non-blocking — sets user or null)
 app.use("/api/*", jwtAuth);
 
-app.use(
-  "/api/trpc/*",
-  trpcServer({
-    router: appRouter,
-    createContext: (_opts, c) => ({
-      env: c.env,
-      user: c.get("user"),
-    }),
-  }),
-);
+// Feature routes
+app.route("/api/hello", helloRoutes);
+app.route("/api/users", usersRoutes);
 
-// Example: non-tRPC REST route with consistent response format
+// Example: REST route with consistent response format
 app.get("/api/health", (c) => {
   return ok(c, { status: "ok", timestamp: Date.now() });
 });
-
 
 // Static assets served by Cloudflare Workers Assets binding (SPA fallback)
 app.get("*", (c) => c.env.ASSETS.fetch(c.req.raw));

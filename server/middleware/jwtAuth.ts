@@ -10,7 +10,7 @@ declare module "hono" {
 /**
  * Non-blocking JWT middleware.
  * Sets `c.var.user` to the decoded payload if a valid Bearer token is present,
- * or `null` otherwise. Does NOT return 401 — that's left to tRPC's protectedProcedure.
+ * or `null` otherwise. Does NOT return 401 — that's left to the authGuard middleware.
  */
 export const jwtAuth = async (c: Context, next: Next) => {
   const authHeader = c.req.header("Authorization");
