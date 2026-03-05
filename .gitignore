@@ -31,3 +31,4 @@ lerna-debug.log*
 !.env.example
 .env
 .env.prod
+.claude/
