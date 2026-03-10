@@ -8,8 +8,6 @@ export type DB = NodePgDatabase<typeof schema>;
 
 export let db: DB;
 
-let devDb: DB | null = null;
-
 /**
  * Initializes the db connection per request.
  * - Dev: reuses a single Drizzle instance (stable DATABASE_URL)
@@ -21,8 +19,7 @@ export const dbMiddleware = createMiddleware<{
   Bindings: CloudflareBindings;
 }>(async (c, next) => {
   if (isDev) {
-    devDb ??= drizzle(new pg.Pool({ connectionString: process.env.DATABASE_URL! }), { schema });
-    db = devDb;
+    db ??= drizzle(new pg.Pool({ connectionString: process.env.DATABASE_URL! }), { schema });
     await next();
     return;
   }
