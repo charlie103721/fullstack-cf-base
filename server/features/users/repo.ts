@@ -1,12 +1,19 @@
+import { eq, desc } from "drizzle-orm";
 import { db } from "../../db";
+import { users } from "../../db/schema";
 
-const SELECTED_FIELDS = ["id", "email", "name", "created_at"] as const;
+const SELECTED_FIELDS = {
+  id: users.id,
+  email: users.email,
+  name: users.name,
+  createdAt: users.createdAt,
+} as const;
 
 export const findAll = () =>
-  db("users").select(...SELECTED_FIELDS).orderBy("created_at", "desc");
+  db.select(SELECTED_FIELDS).from(users).orderBy(desc(users.createdAt));
 
 export const findByEmail = (email: string) =>
-  db("users").where({ email }).first();
+  db.select().from(users).where(eq(users.email, email)).then((rows) => rows[0] ?? null);
 
 export const insert = (user: { id: string; email: string; name: string }) =>
-  db("users").insert(user).returning([...SELECTED_FIELDS]);
+  db.insert(users).values(user).returning(SELECTED_FIELDS);
