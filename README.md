@@ -4,38 +4,67 @@
 
 Full-stack template built with **Hono** + **React** running on **Cloudflare Workers**.
 
-**Stack:** Hono (REST API), React 19, React Query, Better Auth, Knex + PostgreSQL (via Hyperdrive), Tailwind CSS v4, Vite
+**Stack:** Hono (REST API), React 19, React Query, Better Auth, Drizzle ORM + PostgreSQL (via Hyperdrive), Tailwind CSS v4, Vite
 
 ---
 
-## Quick Start (New Project)
+## Setup
 
-### 1. Clone this template into your project
+### 1. Create your project
 
 ```sh
 cp -r fullstack-cf-base/ my-project/
 cd my-project
+bun install
 ```
-
-### 2. Rename the app
 
 Update `"name"` in both files:
 - `package.json` — change `"name": "my-hono-app"` to your project name
 - `wrangler.jsonc` — change `"name": "my-hono-app"` to your project name (this becomes your `*.workers.dev` subdomain)
 
-### 3. Install dependencies
+### 2. Local
+
+#### Database
+
+Create a local database (assumes Postgres is already running):
 
 ```sh
-bun install
+createdb <your-project-name>_dev
 ```
 
-### 4. Provision a PostgreSQL database
+#### Environment
 
-Use any hosted provider. **Neon** (free tier) is recommended:
+```sh
+cp .env.example .env
+```
+
+Edit `.env` — set the database name to match what you created:
+
+```
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/<your-project-name>_dev
+```
+
+#### Run
+
+```sh
+bun run db:migrate
+bun run dev
+```
+
+Client: http://localhost:5173 | Server: http://localhost:8787
+
+### 3. Production
+
+#### Database
+
+Use any hosted PostgreSQL provider. **Neon** (free tier) is recommended:
+
 1. Go to https://console.neon.tech → sign up → create project
 2. Copy the connection string: `postgresql://user:pass@host/dbname?sslmode=require`
 
-### 5. Create Hyperdrive (Cloudflare DB connection pooler)
+#### Hyperdrive (Cloudflare connection pooler)
+
+Create a Hyperdrive instance to pool connections between your Worker and the database:
 
 ```sh
 bunx wrangler hyperdrive create my-project-db --connection-string="<your-connection-string>"
@@ -52,43 +81,41 @@ This outputs a Hyperdrive ID. Update `wrangler.jsonc`:
 ]
 ```
 
-Disable caching (required for auth to work — prevents stale "user not found" errors):
+Disable caching (required for auth — prevents stale "user not found" errors):
 
 ```sh
 bunx wrangler hyperdrive update <your-hyperdrive-id> --caching-disabled true
 ```
 
-### 6. Configure secrets
+#### Environment
 
 ```sh
 cp .env.prod.example .env.prod
 ```
 
-Edit `.env.prod`:
+Open `.env.prod` and fill in every value:
 
-```
-DATABASE_URL=<your-connection-string>
-BETTER_AUTH_SECRET=<run: openssl rand -hex 32>
-BETTER_AUTH_URL=https://<your-project-name>.<your-subdomain>.workers.dev
-CLIENT_URL=https://<your-project-name>.<your-subdomain>.workers.dev
-GITHUB_CLIENT_ID=
-GITHUB_CLIENT_SECRET=
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-```
+| Variable | How to get it |
+|---|---|
+| `DATABASE_URL` | Connection string from your Postgres provider (e.g. Neon dashboard → "Connection string") |
+| `BETTER_AUTH_SECRET` | Generate a random secret: `openssl rand -hex 32` |
+| `BETTER_AUTH_URL` | Your production URL, e.g. `https://my-app.my-subdomain.workers.dev` or your custom domain |
+| `CLIENT_URL` | Same as `BETTER_AUTH_URL` (they share the same origin in this template) |
+| `GITHUB_CLIENT_ID` | GitHub OAuth app → Settings → Developer settings → OAuth Apps → Client ID |
+| `GITHUB_CLIENT_SECRET` | Same page → "Generate a new client secret" |
+| `GOOGLE_CLIENT_ID` | Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client ID |
+| `GOOGLE_CLIENT_SECRET` | Same page → Client secret |
 
 > **OAuth is optional.** Leave `GITHUB_*` and `GOOGLE_*` empty if you only need email/password auth.
 
-### 7. Run migrations & push secrets
+> **Tip:** If you're using an LLM-powered editor (Claude Code, Cursor, etc.), you can ask it to generate the `.env.prod` file for you — it can run `openssl rand -hex 32` and fill in the URLs based on your `wrangler.jsonc` name. Just provide your `DATABASE_URL` and any OAuth credentials.
+
+#### Deploy
+
+Push secrets and deploy (builds client, runs migrations, deploys to Cloudflare Workers):
 
 ```sh
-bun run migrate:prod
 bun run secrets:push
-```
-
-### 8. Deploy
-
-```sh
 bun run deploy
 ```
 
@@ -96,43 +123,76 @@ Your app is live at `https://<your-project-name>.<your-subdomain>.workers.dev`
 
 ---
 
-## Local Development
+## Database
 
-### 1. Set up a local PostgreSQL database
+This template uses **Drizzle ORM** with **PostgreSQL**. In production, connections go through **Cloudflare Hyperdrive** for connection pooling.
 
-If you already have a shared Postgres running (e.g. Docker), just create a new database for this project:
+### How it works
+
+- **Schema** is defined in `server/db/schema.ts` using Drizzle's `pgTable` helpers.
+- **Migrations** are generated SQL files in `server/db/migrations/`, produced by `drizzle-kit generate`.
+- **Connection** is managed by `server/db/index.ts` — in dev it reuses a single pool, in production it creates a per-request pool via Hyperdrive.
+- **Config** lives in `drizzle.config.ts` at the project root.
+
+### Adding a new table
+
+1. Define the table in `server/db/schema.ts`:
+
+```ts
+export const posts = pgTable("posts", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+```
+
+2. Generate a migration:
 
 ```sh
-createdb <your-project-name>_dev
+bun run db:generate
 ```
 
-Or if starting fresh with Docker:
+This creates a new `.sql` file in `server/db/migrations/`.
+
+3. Apply it:
 
 ```sh
-docker run -d --name pg -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres
-createdb -h localhost -U postgres <your-project-name>_dev
+bun run db:migrate
 ```
 
-### 2. Configure local environment
+### Modifying an existing table
+
+Edit the table definition in `schema.ts`, then run `db:generate` and `db:migrate` as above. Drizzle diffs your schema and generates the appropriate `ALTER TABLE` statements.
+
+### Deploying database changes
+
+The `deploy` script runs migrations automatically:
 
 ```sh
-cp .env.example .env
+bun run deploy   # builds, migrates, deploys
 ```
 
-Edit `.env` — replace the database name to match what you created above:
-
-```
-DATABASE_URL=postgres://postgres:postgres@localhost:5432/<your-project-name>_dev
-```
-
-### 3. Run migrations & start
+To migrate production manually without deploying:
 
 ```sh
-bun run migrate
-bun run dev
+DATABASE_URL=<your-prod-connection-string> bun run db:migrate
 ```
 
-Client: http://localhost:5173 | Server: http://localhost:8787
+### Browsing the database
+
+```sh
+bun run db:studio
+```
+
+Opens Drizzle Studio at https://local.drizzle.studio — a visual browser for your database.
+
+### Dev vs Production connections
+
+| | Dev | Production |
+|---|---|---|
+| **Connection** | Direct to local Postgres via `DATABASE_URL` in `.env` | Via Cloudflare Hyperdrive (connection pooling) |
+| **Pool** | Single shared pool (reused across requests) | Per-request pool (`max: 1`), closed after each request |
+| **Config** | `.env` → `DATABASE_URL` | Hyperdrive binding in `wrangler.jsonc` |
 
 ---
 
@@ -144,15 +204,14 @@ Client: http://localhost:5173 | Server: http://localhost:8787
 | `bun run dev:server` | Server only, restart-on-save (`server/**/*.ts`) |
 | `bun run build` | Build client assets for production (server is bundled by Wrangler from `server/index.tsx`) |
 | `bun run preview` | Build and run locally with `wrangler dev` |
-| `bun run deploy` | Build and deploy to Cloudflare Workers |
+| `bun run deploy` | Build client, run migrations, and deploy to Cloudflare Workers |
 | `bun run test` | Run tests (Vitest, watch mode) |
 | `bun run test:run` | Run tests once |
 | `bun run lint` | Lint with ESLint |
-| `bun run migrate` | Run migrations against local dev DB |
-| `bun run migrate:prod` | Run migrations against production DB |
-| `bun run migrate:rollback` | Rollback last migration (dev) |
-| `bun run migrate:rollback:prod` | Rollback last migration (prod) |
-| `bun run migrate:make` | Create a new migration file |
+| `bun run db:generate` | Generate a new migration from schema changes |
+| `bun run db:migrate` | Apply pending migrations |
+| `bun run db:push` | Push schema directly to the database (skips migration files) |
+| `bun run db:studio` | Open Drizzle Studio (visual database browser) |
 | `bun run secrets:push` | Push `.env.prod` secrets to Cloudflare |
 | `bun run cf-typegen` | Regenerate `CloudflareBindings` types from `wrangler.jsonc` |
 
@@ -170,8 +229,9 @@ Client: http://localhost:5173 | Server: http://localhost:8787
 ├── server/              # Hono backend (REST API)
 │   ├── config.ts        # Runtime config (isDev flag, etc.)
 │   ├── db/
-│   │   ├── knexfile.ts  # Knex config (dev + prod)
-│   │   └── migrations/  # Database migrations
+│   │   ├── schema.ts    # Drizzle table definitions
+│   │   ├── index.ts     # DB connection middleware
+│   │   └── migrations/  # SQL migration files (generated by drizzle-kit)
 │   ├── features/        # Feature modules (router/service/repo/schema)
 │   ├── lib/             # Auth setup (better-auth)
 │   ├── middleware/       # Auth, JWT, logging, error handling
