@@ -1,15 +1,5 @@
 import { pgTable, text, boolean, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
 
-// ─── App tables ──────────────────────────────────────────────
-
-export const users = pgTable("users", {
-  id: text("id").primaryKey(),
-  email: text("email").notNull().unique(),
-  name: text("name").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
-
 // ─── better-auth tables ──────────────────────────────────────
 
 export const user = pgTable("user", {

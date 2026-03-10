@@ -2,7 +2,6 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 
 import { helloRoutes } from "./features/hello/router";
-import { usersRoutes } from "./features/users/router";
 import { dbMiddleware } from "./db";
 import { ok } from "./util/response";
 import { requestId } from "./middleware/requestId";
@@ -40,9 +39,7 @@ app.use("/api/*", jwtAuth);
 
 // Feature routes
 app.route("/api/hello", helloRoutes);
-app.route("/api/users", usersRoutes);
 
-// Example: REST route with consistent response format
 app.get("/api/health", (c) => {
   return ok(c, { status: "ok", timestamp: Date.now() });
 });
