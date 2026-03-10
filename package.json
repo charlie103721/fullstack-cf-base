@@ -19,7 +19,6 @@
 		"db:migrate": "drizzle-kit migrate",
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
-		"hyperdrive:create": "wrangler hyperdrive create my-db --connection-string",
 		"secrets:push": "bun scripts/push-secrets.ts"
 	},
 	"dependencies": {
