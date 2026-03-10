@@ -64,7 +64,13 @@ Use any hosted PostgreSQL provider. **Neon** (free tier) is recommended:
 
 #### Hyperdrive (Cloudflare connection pooler)
 
-Create a Hyperdrive instance to pool connections between your Worker and the database:
+Check if a Hyperdrive ID is already configured in `wrangler.jsonc`. If so, you can **reuse** it by updating its connection string:
+
+```sh
+bunx wrangler hyperdrive update <existing-hyperdrive-id> --connection-string="<your-connection-string>"
+```
+
+Otherwise, **create a new one**:
 
 ```sh
 bunx wrangler hyperdrive create my-project-db --connection-string="<your-connection-string>"
@@ -86,6 +92,8 @@ Disable caching (required for auth — prevents stale "user not found" errors):
 ```sh
 bunx wrangler hyperdrive update <your-hyperdrive-id> --caching-disabled true
 ```
+
+> **LLM users:** If you're using an AI assistant to set up the project, have it check `wrangler.jsonc` for an existing Hyperdrive ID before creating a new one — it should ask whether to reuse or create.
 
 #### Environment
 
