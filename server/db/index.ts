@@ -8,12 +8,12 @@ export type DB = NodePgDatabase<typeof schema>;
 
 export let db: DB;
 
-let devClient: pg.Pool | null = null;
+let devDb: DB | null = null;
 
 /**
  * Initializes the db connection per request.
- * - Dev: reuses a single Pool (stable DATABASE_URL)
- * - Production: creates a fresh Pool per request because Hyperdrive
+ * - Dev: reuses a single Drizzle instance (stable DATABASE_URL)
+ * - Production: creates a fresh connection per request because Hyperdrive
  *   manages connection pooling and stale TCP connections in a long-lived
  *   pool cause unhandled errors (Cloudflare error 1101) that crash the Worker.
  */
@@ -21,19 +21,20 @@ export const dbMiddleware = createMiddleware<{
   Bindings: CloudflareBindings;
 }>(async (c, next) => {
   if (isDev) {
-    if (!devClient) {
-      devClient = new pg.Pool({ connectionString: process.env.DATABASE_URL! });
-    }
-    db = drizzle(devClient, { schema });
-  } else {
-    const client = new pg.Pool({
-      connectionString: c.env.HYPERDRIVE.connectionString,
-      max: 1,
-    });
-    db = drizzle(client, { schema });
+    devDb ??= drizzle(new pg.Pool({ connectionString: process.env.DATABASE_URL! }), { schema });
+    db = devDb;
     await next();
-    await client.end();
     return;
   }
-  await next();
+
+  const client = new pg.Pool({
+    connectionString: c.env.HYPERDRIVE.connectionString,
+    max: 1,
+  });
+  db = drizzle(client, { schema });
+  try {
+    await next();
+  } finally {
+    await client.end();
+  }
 });
