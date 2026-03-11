@@ -18,9 +18,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: process.env.PORTLESS_URL
-          ? process.env.PORTLESS_URL.replace("://", "://api.")
-          : "http://localhost:8787",
+        target: process.env.PORTLESS_URL!.replace("://", "://api."),
         changeOrigin: true,
         secure: false,
       },

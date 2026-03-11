@@ -51,7 +51,9 @@ bun run db:migrate
 bun run dev
 ```
 
-Client: http://localhost:5173 | Server: http://localhost:8787
+Client: https://my-hono-app.localhost:1355 | Server: https://api.my-hono-app.localhost:1355
+
+> Requires [portless](https://github.com/nicepkg/portless). Names are derived from `package.json` `"name"`.
 
 ### 3. Production
 
@@ -258,5 +260,5 @@ A cron trigger is configured in `wrangler.jsonc` to run every hour (`0 * * * *`)
 Test cron locally:
 
 ```sh
-curl "http://localhost:8787/__scheduled?cron=0+*+*+*+*"
+curl "https://api.my-hono-app.localhost:1355/__scheduled?cron=0+*+*+*+*"
 ```
