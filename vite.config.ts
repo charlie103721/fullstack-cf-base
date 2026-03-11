@@ -2,9 +2,22 @@ import path from "path";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import pkg from "./package.json";
 
 export default defineConfig({
-  plugins: [tailwindcss(), react()],
+  plugins: [
+    tailwindcss(),
+    react(),
+    {
+      name: "html-inject-app-name",
+      transformIndexHtml(html) {
+        return html.replace(/__APP_NAME__/g, pkg.name);
+      },
+    },
+  ],
+  define: {
+    __APP_NAME__: JSON.stringify(pkg.name),
+  },
   root: "client",
   resolve: {
     alias: {

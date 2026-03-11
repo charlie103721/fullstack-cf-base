@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 
-const APP_NAME = "My Hono App";
+const APP_NAME = __APP_NAME__;
 const APP_SUBTITLE = "A fullstack Cloudflare Workers app";
 
 export default function Landing() {

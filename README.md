@@ -51,9 +51,7 @@ bun run db:migrate
 bun run dev
 ```
 
-Client: https://my-hono-app.localhost:1355 | Server: https://api.my-hono-app.localhost:1355
-
-> Requires [portless](https://github.com/nicepkg/portless). Names are derived from `package.json` `"name"`.
+Client: `https://<name>.localhost:1355` | Server: `https://api.<name>.localhost:1355`
 
 ### 3. Production
 
@@ -253,6 +251,50 @@ Opens Drizzle Studio at https://local.drizzle.studio — a visual browser for yo
 
 ---
 
+## Portless (Local HTTPS)
+
+This template uses [portless](https://github.com/vercel-labs/portless) for local development. Portless assigns stable hostnames with HTTPS instead of random ports.
+
+### Install
+
+```sh
+npm i -g portless
+```
+
+### How it works
+
+`bun run dev` starts two portless-wrapped processes:
+
+| Service | Hostname | Script |
+|---|---|---|
+| Client (Vite) | `https://<name>.localhost:1355` | `portless run vite` |
+| Server (Hono) | `https://api.<name>.localhost:1355` | `portless api.<name> tsx watch ...` |
+
+The `<name>` is read from `package.json` `"name"`. Portless sets `PORT` and `PORTLESS_URL` env vars automatically.
+
+### Proxy
+
+Vite proxies `/api/*` requests to the API subdomain using `PORTLESS_URL`:
+
+```
+Browser → https://<name>.localhost:1355/api/health
+       → Vite proxy → https://api.<name>.localhost:1355/api/health
+       → Hono server
+```
+
+This mirrors production where both client and API share the same origin on Cloudflare Workers.
+
+### Troubleshooting
+
+If the proxy fails to start:
+
+```sh
+portless proxy start   # start manually
+portless proxy stop    # stop and restart
+```
+
+---
+
 ## Scheduled Tasks (Cron)
 
 A cron trigger is configured in `wrangler.jsonc` to run every hour (`0 * * * *`). The handler is the `scheduled` export in `server/index.tsx`. Edit it to add your own scheduled jobs.
@@ -260,5 +302,5 @@ A cron trigger is configured in `wrangler.jsonc` to run every hour (`0 * * * *`)
 Test cron locally:
 
 ```sh
-curl "https://api.my-hono-app.localhost:1355/__scheduled?cron=0+*+*+*+*"
+curl "https://api.<name>.localhost:1355/__scheduled?cron=0+*+*+*+*"
 ```

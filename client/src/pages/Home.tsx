@@ -26,7 +26,7 @@ export default function Home() {
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col items-center gap-6 p-8">
-      <h1 className="text-4xl font-bold">my-hono-app</h1>
+      <h1 className="text-4xl font-bold">{__APP_NAME__}</h1>
 
       <Card className="w-full">
         <CardHeader>
