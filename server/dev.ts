@@ -9,6 +9,11 @@ function resolvePort(): number {
     return fromServerPort;
   }
 
+  const fromPort = Number(process.env.PORT);
+  if (Number.isFinite(fromPort) && fromPort > 0) {
+    return fromPort;
+  }
+
   const authUrl = process.env.BETTER_AUTH_URL;
   if (authUrl) {
     try {

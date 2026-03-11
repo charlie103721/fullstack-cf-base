@@ -17,7 +17,13 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/api": "http://localhost:8787",
+      "/api": {
+        target: process.env.PORTLESS_URL
+          ? process.env.PORTLESS_URL.replace("://", "://api.")
+          : "http://localhost:8787",
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
   optimizeDeps: {

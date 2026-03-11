@@ -45,7 +45,9 @@ app.get("/api/health", (c) => {
 });
 
 // Static assets served by Cloudflare Workers Assets binding (SPA fallback)
-app.get("*", (c) => c.env.ASSETS.fetch(c.req.raw));
+if (!isDev) {
+  app.get("*", (c) => c.env.ASSETS.fetch(c.req.raw));
+}
 
 export default {
   fetch: app.fetch,
