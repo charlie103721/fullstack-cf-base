@@ -97,7 +97,7 @@ function createAuthInstance(connectionString: string, env: AuthEnv) {
       },
     },
     trustedOrigins: isDev
-      ? ["http://localhost:*"]
+      ? ["http://localhost:*", "https://*.localhost:*"]
       : [env.clientUrl!],
     session: {
       expiresIn: SESSION_EXPIRES_IN_SECONDS,

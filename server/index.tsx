@@ -22,7 +22,7 @@ if (isDev) {
   app.use(
     "/api/*",
     cors({
-      origin: (origin) => (origin?.startsWith("http://localhost:") ? origin : ""),
+      origin: (origin) => (origin?.includes("localhost") ? origin : ""),
       credentials: true,
       exposeHeaders: ["set-auth-token"],
     }),
